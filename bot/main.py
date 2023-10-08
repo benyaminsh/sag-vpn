@@ -8,6 +8,8 @@ base_url = config('BASE_URL', default="http://127.0.0.1:8000")
 api_id = config("API_ID", default=29966682, cast=int)
 api_hash = config("API_HASH", default="c7cee45eb9a296b05c005c25febc6264")
 
+app = Client("my_account", api_id=api_id, api_hash=api_hash)
+
 
 def send_to_server(config, channel):
     url = base_url + "/servers/create-config/"
@@ -32,7 +34,17 @@ def get_channels():
     }
 
     response = requests.request("GET", url, headers=headers).json()
-    result = [res['username'] for res in response]
+    result = []
+    for res in response:
+        try:
+            username = str(res['username'])
+            result.append(username)
+            app.start()
+            app.join_chat(username[1:])
+            app.stop()
+        except:
+            pass
+
     return result
 
 
@@ -50,8 +62,6 @@ def find_config(text):
 
 
 channels_username = get_channels()
-
-app = Client("my_account", api_id=api_id, api_hash=api_hash)
 
 
 @app.on_message(filters.chat(chats=channels_username))

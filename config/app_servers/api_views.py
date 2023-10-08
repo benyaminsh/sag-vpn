@@ -29,10 +29,12 @@ class GetConfig(generics.ListAPIView):
         subscription = Subscription.objects.filter(code=code).first()
         if subscription is not None:
             if check_date(subscription.expire_date):
-                return HttpResponse('اشتراک شما به پایان رسیده است')
+                return HttpResponse('اشتراک شما به پایان رسیده است', content_type='text/plain')
             else:
-                servers = "".join([server.config for server in Servers.objects.all()[:6]])
-                return HttpResponse(servers)
+                servers = ""
+                for server in Servers.objects.all()[:6]:
+                    servers += f"\n{server}"
+                return HttpResponse(servers, content_type='text/plain')
 
         else:
-            return HttpResponse('خطا')
+            return HttpResponse('خطا', content_type='text/plain')
