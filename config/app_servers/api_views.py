@@ -32,7 +32,7 @@ class GetConfig(generics.ListAPIView):
                 return HttpResponse('اشتراک شما به پایان رسیده است', content_type='text/plain')
             else:
                 servers = ""
-                for server in Servers.objects.all()[:6]:
+                for server in Servers.objects.all()[:7]:
                     servers += f"\n{server}"
                 return HttpResponse(servers, content_type='text/plain')
 

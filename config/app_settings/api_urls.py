@@ -5,4 +5,5 @@ app_name = 'app_settings'
 
 urlpatterns = [
     path('get-channels/',GetChannels.as_view(),name='GetChannels'),
+    path('create-channels/',CreateChannel.as_view(),name='CreateChannel'),
 ]

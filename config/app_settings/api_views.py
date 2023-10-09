@@ -8,3 +8,8 @@ class GetChannels(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ChannelsSerializers
     queryset = Channels.objects.all()
+
+class CreateChannel(generics.CreateAPIView):
+    permission_classes = [IsAuthenticated]
+    serializer_class = ChannelsSerializers
+    queryset = Channels.objects.all()
