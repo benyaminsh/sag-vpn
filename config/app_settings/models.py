@@ -6,3 +6,10 @@ class Channels(models.Model):
 
     def __str__(self):
         return self.username
+
+
+class Ads(models.Model):
+    text = models.TextField(default='default')
+
+    def __str__(self):
+        return self.text

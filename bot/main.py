@@ -1,4 +1,5 @@
 from pyrogram import Client, filters
+from random import choice
 from decouple import config
 import requests
 import re
@@ -18,55 +19,79 @@ app = Client("my_account", api_id=api_id, api_hash=api_hash)
 
 
 def send_to_server(config, channel):
-    url = base_url + "/servers/create-config/"
+    try:
+        url = base_url + "/servers/create-config/"
 
-    payload = {
-        'config': config,
-        'channel': channel
-    }
+        payload = {
+            'config': config,
+            'channel': channel
+        }
 
-    headers = {
-        'Authorization': f'Token {token}',
-    }
+        headers = {
+            'Authorization': f'Token {token}',
+        }
 
-    response = requests.request("POST", url, headers=headers, data=payload)
+        response = requests.request("POST", url, headers=headers, data=payload)
 
+    except:
+        pass
 
 def get_channels():
-    url = base_url + "/settings/get-channels/"
+    try:
+        url = base_url + "/settings/get-channels/"
 
-    headers = {
-        'Authorization': f'Token {token}',
-    }
+        headers = {
+            'Authorization': f'Token {token}',
+        }
 
-    response = requests.request("GET", url, headers=headers).json()
-    result = []
-    for res in response:
-        try:
-            username = str(res['username'])
-            result.append(username)
-        except:
-            pass
+        response = requests.request("GET", url, headers=headers).json()
+        result = []
+        for res in response:
+            try:
+                username = str(res['username'])
+                result.append(username)
+            except:
+                pass
 
-    return result
+        return result
+
+    except:
+        pass
 
 
 def create_channel_in_server(channel):
-    url = base_url + "/settings/create-channels/"
+    try:
+        url = base_url + "/settings/create-channels/"
 
-    payload = {'username': channel}
+        payload = {'username': channel}
 
-    headers = {
-        'Authorization': f'Token {token}',
-    }
+        headers = {
+            'Authorization': f'Token {token}',
+        }
 
-    response = requests.request("POST", url, headers=headers, data=payload)
+        response = requests.request("POST", url, headers=headers, data=payload)
+
+    except:
+        pass
 
 
+def get_ads_text():
+    try:
+        url = base_url + "/settings/get-ads/"
 
+        headers = {
+            'Authorization': f'Token {token}',
+        }
+
+        response = requests.request("GET", url, headers=headers)
+
+        return response.json()['text']
+
+    except:
+        return "default"
 
 def find_config(text):
-    patterns = [r"trojan://.*", r"vmess://.*", r"vless://.*",r"ss://.*"]
+    patterns = [r"trojan://.*", r"vless://.*",r"ss://.*"]
 
     for pattern in patterns:
         matches = re.findall(pattern, text)
@@ -79,6 +104,30 @@ def find_config(text):
 
 
 
+def set_company_name_in_config(config):
+    try:
+        ads = get_ads_text()
+        emoji = [
+            "🗿",
+            "🍼",
+            "😁",
+            "🐶🐶",
+            "😐😐😐",
+            ":)",
+            "💞💞💞",
+            "🍌🍌🍌",
+            "🍼🍼🗿",
+            "😝😝",
+        ]
+        if ads == 'default':
+            result = str(config).split('#')[0] + f"# داگ وی پی ان  {choice(emoji)}"
+
+        else:
+            result = str(config).split('#')[0] + f"# {ads}"
+
+        return result
+    except:
+        return config
 
 @app.on_message(filters.private)
 async def find_command(client, message):
@@ -126,8 +175,9 @@ async def main(client, message):
     try:
         configs = find_config(message.text)
         for config in configs:
-            send_to_server(config, message.sender_chat.username)
-            servers.append(config)
+            result = set_company_name_in_config(config)
+            send_to_server(result, message.sender_chat.username)
+            servers.append(result)
             jsonString = json.dumps(servers, ensure_ascii=False, indent=4)
             jsonFile = open("servers.json", "w", encoding='utf-8')
             jsonFile.write(jsonString)
@@ -137,4 +187,7 @@ async def main(client, message):
 
 
 app.run()
+
+
+
 
