@@ -1,9 +1,10 @@
 from pyrogram import Client, filters
-from random import choice
 from decouple import config
+from datetime import datetime
 import requests
+import pytz
 import re
-import json
+
 
 token = config('TOKEN',default='9916efd144ea2cf77e9aa22ee08c50d45e4a62e2')
 base_url = config('BASE_URL', default="http://127.0.0.1:8000")
@@ -90,8 +91,23 @@ def get_ads_text():
     except:
         return "default"
 
+
+def get_status_servers():
+    try:
+        url = base_url+ "/servers/get-status-servers/"
+
+        payload = {}
+        headers = {
+            'Authorization': f'Token {token}',
+        }
+
+        response = requests.request("GET", url, headers=headers, data=payload).json()
+        return response['count']
+    except:
+        return 0
+
 def find_config(text):
-    patterns = [r"trojan://.*", r"vless://.*",r"ss://.*"]
+    patterns = [r"trojan://.*", r"vless://.*"]
 
     for pattern in patterns:
         matches = re.findall(pattern, text)
@@ -104,42 +120,27 @@ def find_config(text):
 
 
 
-def set_company_name_in_config(config):
-    try:
-        ads = get_ads_text()
-        emoji = [
-            "🗿",
-            "🍼",
-            "😁",
-            "🐶🐶",
-            "😐😐😐",
-            ":)",
-            "💞💞💞",
-            "🍌🍌🍌",
-            "🍼🍼🗿",
-            "😝😝",
-        ]
-        if ads == 'default':
-            result = str(config).split('#')[0] + f"# داگ وی پی ان  {choice(emoji)}"
+def check_working_hours():
+    # تنظیم منطقه زمانی به ایران
+    tz = pytz.timezone('Asia/Tehran')
+    # دریافت زمان فعلی
+    now = datetime.now(tz)
+    # تنظیم زمان مورد نظر برای پایان کار
+    end_time = now.replace(hour=21, minute=0, second=0, microsecond=0)
 
-        else:
-            result = str(config).split('#')[0] + f"# {ads}"
+    if now > end_time:
+        return False
+    else:
+        return True
 
-        return result
-    except:
-        return config
+
+
 
 @app.on_message(filters.private)
 async def find_command(client, message):
     if message.text == 'status':
-        try:
-            jsonFile = open("servers.json", "r", encoding='utf-8')
-            servers_count = len(json.loads(jsonFile.read()))
-        except:
-            servers_count = 0
-
         text = f"""
-Server Count : {servers_count}
+Server Count : {get_status_servers()}
 Channels Count : {len(get_channels())}
 Channels ID :
 """ + " - ".join(get_channels())
@@ -175,15 +176,10 @@ async def main(client, message):
     try:
         configs = find_config(message.text)
         for config in configs:
-            result = set_company_name_in_config(config)
-            send_to_server(result, message.sender_chat.username)
-            servers.append(result)
-            jsonString = json.dumps(servers, ensure_ascii=False, indent=4)
-            jsonFile = open("servers.json", "w", encoding='utf-8')
-            jsonFile.write(jsonString)
-            jsonFile.close()
+            send_to_server(config, message.sender_chat.username)
     except:
         pass
+
 
 
 app.run()
