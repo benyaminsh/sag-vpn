@@ -116,7 +116,7 @@ def find_config(text):
         else:
             pass
 
-    return False
+    return []
 
 
 

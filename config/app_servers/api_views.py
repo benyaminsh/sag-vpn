@@ -18,6 +18,7 @@ def check_date(date):
         return False
 
 
+
 class CreateConfig(generics.CreateAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = ServersSerializers
