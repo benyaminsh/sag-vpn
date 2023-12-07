@@ -5,37 +5,36 @@ import requests
 import pytz
 import re
 
-
-token = config('TOKEN',default='9916efd144ea2cf77e9aa22ee08c50d45e4a62e2')
+token = config('TOKEN', default='9916efd144ea2cf77e9aa22ee08c50d45e4a62e2')
 base_url = config('BASE_URL', default="http://127.0.0.1:8000")
 api_id = config("API_ID", default=29966682, cast=int)
 api_hash = config("API_HASH", default="c7cee45eb9a296b05c005c25febc6264")
 servers = []
 
-
-
-
 app = Client("my_account", api_id=api_id, api_hash=api_hash)
 
 
-
-def send_to_server(config, channel):
+def send_to_server(config):
+    print(config)
+    print(token)
     try:
         url = base_url + "/servers/create-config/"
 
         payload = {
-            'config': config,
-            'channel': channel
+            'config': f'{config}',
+            'channel': 'no'
         }
+        files = [
 
+        ]
         headers = {
             'Authorization': f'Token {token}',
         }
 
-        response = requests.request("POST", url, headers=headers, data=payload)
-
+        response = requests.request("POST", url, headers=headers, data=payload, files=files)
     except:
         pass
+
 
 def get_channels():
     try:
@@ -94,7 +93,7 @@ def get_ads_text():
 
 def get_status_servers():
     try:
-        url = base_url+ "/servers/get-status-servers/"
+        url = base_url + "/servers/get-status-servers/"
 
         payload = {}
         headers = {
@@ -105,6 +104,7 @@ def get_status_servers():
         return response['count']
     except:
         return 0
+
 
 def find_config(text):
     patterns = [r"trojan://.*", r"vless://.*"]
@@ -119,7 +119,6 @@ def find_config(text):
     return []
 
 
-
 def check_working_hours():
     # تنظیم منطقه زمانی به ایران
     tz = pytz.timezone('Asia/Tehran')
@@ -132,8 +131,6 @@ def check_working_hours():
         return False
     else:
         return True
-
-
 
 
 @app.on_message(filters.private)
@@ -169,21 +166,14 @@ Channels ID :
                     pass
 
 
-
-
-@app.on_message(filters or filters.group)
+@app.on_message(filters.text)
 async def main(client, message):
     try:
         configs = find_config(message.text)
         for config in configs:
-            send_to_server(config, message.sender_chat.username)
+            send_to_server(config)
     except:
         pass
 
 
-
 app.run()
-
-
-
-
