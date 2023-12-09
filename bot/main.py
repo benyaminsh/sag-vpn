@@ -15,8 +15,6 @@ app = Client("my_account", api_id=api_id, api_hash=api_hash)
 
 
 def send_to_server(config):
-    print(config)
-    print(token)
     try:
         url = base_url + "/servers/create-config/"
 
@@ -32,6 +30,7 @@ def send_to_server(config):
         }
 
         response = requests.request("POST", url, headers=headers, data=payload, files=files)
+
     except:
         pass
 
@@ -107,66 +106,61 @@ def get_status_servers():
 
 
 def find_config(text):
-    patterns = [r"trojan://.*", r"vless://.*"]
+    try:
+        patterns = [r"trojan://.*", r"vless://.*"]
+        for pattern in patterns:
+            matches = re.findall(pattern, text)
+            if matches:
+                return matches
+            else:
+                pass
 
-    for pattern in patterns:
-        matches = re.findall(pattern, text)
-        if matches:
-            return matches
-        else:
-            pass
+        return []
 
-    return []
-
-
-def check_working_hours():
-    # تنظیم منطقه زمانی به ایران
-    tz = pytz.timezone('Asia/Tehran')
-    # دریافت زمان فعلی
-    now = datetime.now(tz)
-    # تنظیم زمان مورد نظر برای پایان کار
-    end_time = now.replace(hour=21, minute=0, second=0, microsecond=0)
-
-    if now > end_time:
-        return False
-    else:
-        return True
+    except:
+        pass
 
 
 @app.on_message(filters.private)
 async def find_command(client, message):
-    if message.text == 'status':
-        text = f"""
+    try:
+        if message.text == 'status':
+            text = f"""
 Server Count : {get_status_servers()}
 Channels Count : {len(get_channels())}
 Channels ID :
-""" + " - ".join(get_channels())
-        await message.reply(text)
+            """ + " - ".join(get_channels())
+            await message.reply(text)
 
-    elif message.text == 'ping':
-        await message.reply('Pong')
+        elif message.text == 'ping':
+            await message.reply('Pong')
 
-    elif 'join' in message.text:
-        try:
-            url = "".join(str("".join(str(message.text).split('join'))).split('https://t.me/'))
-            with app:
-                await app.join_chat(url)
-                await message.reply('joined')
-                create_channel_in_server(url)
-        except:
-            await message.reply('Not Fund or Invalid')
+        elif 'join' in message.text:
+            try:
+                url = "".join(str("".join(str(message.text).split('join'))).split('https://t.me/'))
+                with app:
+                    await app.join_chat(url)
+                    await message.reply('joined')
+                    create_channel_in_server(url)
+            except:
+                await message.reply('Not Fund or Invalid')
 
-    elif message.text == 'restart':
-        for channel in get_channels():
-            with app:
-                try:
-                    await app.join_chat(channel)
-                    await message.reply(f"Join To : {channel}")
-                except:
-                    pass
+        elif message.text == 'restart':
+            for channel in get_channels():
+                with app:
+                    try:
+                        await app.join_chat(channel)
+                        await message.reply(f"Join To : {channel}")
+                    except:
+                        pass
+        else:
+            pass
+
+    except:
+        pass
 
 
-@app.on_message(filters.text)
+@app.on_message(filters.channel | filters.group)
 async def main(client, message):
     try:
         configs = find_config(message.text)
